@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            background-image: url('img/6529888-fundo-de-natal-com-guirlanda-brilhante-cartao-de-feliz-ilustracao-em-fundo-vermelho-vetor.jpg');
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+        }
+
+        .card {
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            text-align: center;
+            max-width: 400px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #e74c3c;
+        }
+
+        label {
+            display: block;
+            margin-top: 10px;
+            color: #7f8c8d;
+        }
+
+        input {
+            width: 100%;
+            padding: 10px;
+            margin-top: 5px;
+            box-sizing: border-box;
+            border: 1px solid #bdc3c7;
+            border-radius: 4px;
+        }
+
+        button {
+            background-color: #e74c3c;
+            color: #ffffff;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            border: none;
+            border-radius: 4px;
+            margin-top: 10px;
+            transition: background-color 0.3s ease;
+        }
+
+        button:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+        #friendName {
+            font-size: 18px;
+            font-weight: bold;
+            color: #27ae60;
+            margin-top: 20px;
+        }
+
+        #message {
+            color: #3498db;
+            margin-top: 10px;
+        }
+
+        /* Efeitos natalinos */
+        .snowflakes {
+            position: fixed;
+            pointer-events: none;
+            z-index: 1000;
+        }
+
+        .snowflake {
+            position: absolute;
+            color: #fff;
+            font-size: 1em;
+            font-family: Arial, sans-serif;
+            animation: fall linear infinite;
+            user-select: none;
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translateY(0vh) rotate(0deg);
+            }
+            100% {
+                transform: translateY(100vh) rotate(360deg);
+            }
+        }
+
+        @media only screen and (max-width: 600px) {
+            .card {
+                max-width: 300px;
+            }
+        }
+    </style>
+    <title>Amigo Secreto</title>
+</head>
+<body>
+    <div class="card">
+        <h1>Amigo Da Onça</h1>
+        <!-- Input para digitar o nome do participante -->
+        <label for="participanteName">Digite seu nome:</label>
+        <input type="text" id="participanteName" placeholder="Seu Nome">
+
+        <!-- Botão para revelar o amigo -->
+        <button id="revealButton" onclick="revealFriend()">Revelar Amigo</button>
+
+        <!-- Nome do amigo revelado -->
+        <p id="friendName"></p>
+
+        <!-- Mensagem após sortear o amigo -->
+        <p id="message"></p>
+    </div>
+
+    <!-- Efeitos natalinos -->
+    <div class="snowflakes" aria-hidden="true">
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+        <div class="snowflake">❅</div>
+        <div class="snowflake">❆</div>
+    </div>
+
+    <!-- Scripts para carregar o Firebase -->
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-compat-database.js"></script>
+    <script>
+        // Configurações do projeto Firebase
+        const firebaseConfig = {
+            apiKey: "AIzaSyD5cYEGWbkFfXQg4PdPN4SrhXlqLTKIRYc",
+            authDomain: "amiga-da-onca.firebaseapp.com",
+            databaseURL: "https://amiga-da-onca-default-rtdb.firebaseio.com",
+            projectId: "amiga-da-onca",
+            storageBucket: "amiga-da-onca.appspot.com",
+            messagingSenderId: "477453265792",
+            appId: "1:477453265792:web:def94ad2a0ccd3bc2fef65"
+        };
+
+        // Inicialização do Firebase
+        firebase.initializeApp(firebaseConfig);
+
+        // Função para revelar o amigo secreto
+        function revealFriend() {
+            console.log('Clicou em "Revelar Amigo"');
+
+            // Obtém o nome do participante do input
+            const participanteName = document.getElementById('participanteName').value.trim();
+
+            // Verifica se o nome foi fornecido
+            if (participanteName === '') {
+                alert('Por favor, digite seu nome.');
+                return;
+            }
+
+            function capitalizeFirstLetter(string) {
+            return string.charAt(0).toUpperCase() + string.slice(1);
+        }
+
+            // Referência ao nó "participantees" no Firebase
+            const participanteesRef = firebase.database().ref('participantees');
+
+            // Obtém os dados do participante do Firebase
+            participanteesRef.once('value', snapshot => {
+                const participantes = snapshot.val();
+
+                // Verifica se o participante foi encontrado
+                if (!participantes || !participantes[participanteName]) {
+                    alert('Nome não encontrado na lista de participantes.');
+                    return;
+                }
+
+                // Verifica se o participante já sorteou um amigo
+                if (participantes[participanteName].hasDrawn) {
+                    alert('Você já sorteou um amigo. Aguarde até o próximo ano! (Engracadinho)');
+                    return;
+                }
+
+                // Obtém a lista de todos os participantes
+                const allparticipantees = Object.keys(participantes);
+
+                // Remove o próprio participante da lista
+                const filteredparticipantees = allparticipantees.filter(p => p !== participanteName);
+
+                // Encontra o amigo sorteado (que não seja o próprio participante)
+                let friend = filteredparticipantees[Math.floor(Math.random() * filteredparticipantees.length)];
+
+                console.log('Amigo sorteado:', friend);
+
+                // Atualiza os dados no Firebase indicando que o participante já sorteou um amigo
+                participanteesRef.child(participanteName).update({ hasDrawn: true, friend: friend });
+
+                // Desabilita o botão após sortear
+                document.getElementById('revealButton').disabled = true;
+
+                // Exibe o nome do amigo sorteado na página
+                document.getElementById('friendName').innerText = `Olá, ${participanteName}! Seu amigo da Onça é: ${friend}`;
+
+                // Exibe a mensagem
+                document.getElementById('message').innerText = `Parabéns! Você sorteou seu amigo da Onça. Tenha um Feliz Natal! 🎄🎁`;
+            });
+        }
+    </script>
+</body>
+</html>
